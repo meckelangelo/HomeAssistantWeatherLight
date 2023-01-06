@@ -1,7 +1,7 @@
 from datetime import datetime
 import requests
 import json
-import homeassistant.remote as remote
+import homeassistant.helpers.service as service
 
 # Color constants
 BLUE = [68, 100]
@@ -131,10 +131,8 @@ def update_weather_light(refresh_time):
 
 def set_bulb_color(color):
     hue, saturation = color
-    # Replace YOUR_HASS_URL, YOUR_API_PASSWORD, and YOUR_LIGHT_ENTITY_ID with your Home Assistant URL, API password, and light entity ID
-    api = remote.API(YOUR_HASS_URL, YOUR_API_PASSWORD)
-    light = remote.get_entity(api, YOUR_LIGHT_ENTITY_ID)
-    remote.call_service(api, "light/turn_on", {"entity_id": light.entity_id, "hue": hue, "saturation": saturation})
+    # Replace YOUR_LIGHT_ENTITY_ID with the entity ID of your light bulb
+    service.call("light", "turn_on", {"entity_id": YOUR_LIGHT_ENTITY_ID, "hue": hue, "saturation": saturation})
 
 # Query the weather data and update the bulb color every 5 minutes
 while True:
