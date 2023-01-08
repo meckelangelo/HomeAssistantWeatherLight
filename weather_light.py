@@ -1,92 +1,118 @@
 # Color constants
-BLUE = [68, 100]
-AQUA = [56, 100]
-TEAL = [45, 100]
-GREEN = [36, 100]
-LIME = [22, 100]
-YELLOW = [14, 100]
-ORANGE = [10, 100]
-RED = [0, 100]
-PURPLE = [78, 100]
-MAGENTA = [88, 100]
-
-# Get the entity ID for the bulb we want to use for the weather light
-entity_id = data.get("entity_id")
-
-if entity_id is not None:
-    while True:
-        update_weather_light(entity_id)
+BLUE = [0, 0, 255]
+AQUA = [0, 188, 255]
+TEAL = [0, 255, 213]
+GREEN = [0, 255, 0]
+LIME = [102, 255, 0]
+YELLOW = [255, 255, 0]
+ORANGE = [255, 85, 0]
+RED = [255, 0, 0]
+PURPLE = [145, 0, 255]
+MAGENTA = [255, 0, 255]
 
 def get_condition_colors(weather_sensor):
     # Initialize all the booleans to false
     will_rain = False
     will_snow = False
-    will_sleet = False
+    will_lightning = False
     is_cold = False
     is_hot = False
     is_cloudy = False
     is_windy = False
     is_humid = False
     is_clear = False
-    has_alert = False
+    is_hazardous = False
 
     # Initialize an empty list of colors
     colors = []
-    
+
     # Create the list to store the weather conditions
     weather_conditions = []
-
-    # Get the current and forecast weather data
-    current_weather = weather_sensor.attributes.get("current")
-    forecast_data = weather_sensor.attributes.get("forecast")[:8]
-    if current_weather and forecast_data:
-        # Combine the current and forecast weather conditions into a single list
-        weather_conditions = current_weather.get("weather") + [forecast_weather for forecast in forecast_data for forecast_weather in forecast.get("weather")]
-        # Check if there are any alerts in the current or forecast weather data
-        has_alert = any(data.get("alert") for data in ([current_weather] + forecast_data))
+    temperatures = []
+    dew_points = []
+    wind_speeds = []
     
+
+    # Get the current and forecast weather conditions
+    weather_conditions.append(weather_sensor.state)
+    
+    # Get the temperature and relative humidity, and use them to estimate the dew point
+    temperature = weather_sensor.attributes.get("temperature")
+    humidity = weather_sensor.attributes.get("humidity")
+    dew_point = temperature - ((100 - humidity) * (9 / 25))
+    logger.info(dew_point)
+    
+    # Add the temperature and dew point to their lists
+    temperatures.append(temperature)
+    dew_points.append(dew_point)
+    
+    # Get the current wind speed
+    wind_speeds.append(weather_sensor.attributes.get("wind_speed"))
+    
+    # Get the next 8 hours of forecast and get the same information for each hour
+    forecasts = weather_sensor.attributes.get("forecast")[:8]
+    for forecast in forecasts:
+        weather_conditions.append(forecast["condition"])
+        
+        temperature = forecast["temperature"]
+        #humidity = forecast["humidity"]
+        #dew_point = ((temperature - ((100 - humidity) / 5)) * 1.8) + 32
+        
+        temperatures.append(temperature)
+        #dew_points.append(dew_point)
+        
+        wind_speeds.append(forecast["wind_speed"])
+
     # Loop through each condition
-    for condition in weather_conditions
-
-        # Get the weather condition ID
-        weather_id = condition.get("id")
-    
-        # Check if it will rain or snow
-        if 200 <= weather_id <= 599 or weather_id == 701:
+    for condition in weather_conditions:
+        if condition in ("rainy", "lightning", "lightning-rainy", "pouring", "snowy-rainy"):
             will_rain = True
-        if weather_id in (600, 601):
+            logger.info("Rain")
+        if condition in ("snowy", "snowy-rainy"):
             will_snow = True
-        if weather_id in (611, 612, 613):
-            will_sleet = True
-        if 615 <= weather_id <= 621:
-            will_rain = will_snow = True
-
-        # Check if it's cold or hot
-        temperature = condition.get("temperature")
-        feels_like = condition.get("feels_like")
-        if temperature <= 32 or feels_like <= 32:
-            is_cold = True
-        if temperature >= 80 or feels_like >= 80:
-            is_hot = True
-
-        # Check if it's cloudy, windy, or humid
-        if condition.get("clouds") > 50 and not will_rain and not will_snow and not will_sleet:
+            logger.info("Snow")
+        if condition in ("lightning, lightning-rainy"):
+            will_lightning = True
+            logger.info("Lightning")
+        if condition in ("fog", "hail", "exceptional"):
+            is_hazardous = True
+            logger.info("Hazardous")
+        if condition in ("cloudy", "partlycloudy"):
             is_cloudy = True
-        if condition.get("dew_point") >= 65:
+            logger.info("Cloudy")
+    
+    # Loop through each temperature and record whether it will be excessively cold or hot
+    for temperature in temperatures:
+        if temperature <= 32:
+            is_cold = True
+            logger.info("Cold")
+        if temperature >= 80:
+            is_hot = True
+            logger.info("Hot")
+    
+    # Loop through each dew point and record whether it will be excessively humid
+    for dew_point in dew_points:
+        if dew_point >= 65:
             is_humid = True
-        if condition.get("wind_speed") >= 25 or condition.get("wind_gust") >= 30:
+            logger.info("Humid")
+    
+    # Loop through each wind speed and record whether it will be excessively windy
+    for wind_speed in wind_speeds:
+        if wind_speed >= 25:
             is_windy = True
-
-    # If none of the above conditions are met, it's clear
-    if not (will_rain or will_snow or will_sleet or is_cold or is_hot or is_cloudy or is_windy or is_humid or has_alert):
+            logger.info("Windy")
+    
+    # If it's not going to be rainy, snowy, cloudy, etc. then it will be clear
+    if not (will_rain or will_snow or will_lightning or is_hazardous or is_cloudy):
         is_clear = True
+        logger.info("Clear")
 
     # Determine the colors based on the active booleans
     if will_rain:
         colors.append(AQUA)
     if will_snow:
         colors.append(PURPLE)
-    if will_sleet:
+    if will_lightning:
         colors.append(MAGENTA)
     if is_cold:
         colors.append(BLUE)
@@ -100,14 +126,14 @@ def get_condition_colors(weather_sensor):
         colors.append(GREEN)
     if is_clear:
         colors.append(LIME)
-    if has_alert:
+    if is_hazardous:
         colors.append(RED)
 
     return colors
 
 def update_weather_light(light_id):
-    weather_data = hass.states.get("weather.openweathermap_overview")
-    colors = get_condition_colors(weather_data)
+    weather_sensor = hass.states.get("weather.openweathermap_overview")
+    colors = get_condition_colors(weather_sensor)
 
     # Change the bulb color every 5 seconds
     for color in colors:
@@ -117,6 +143,13 @@ def update_weather_light(light_id):
         time.sleep(5)
 
 def set_bulb_color(light_id, color):
-    hue, saturation = color
-    # Set the hue and saturation of the specified light bulb
-    service.call("light", "turn_on", {"entity_id": light_id, "hue": hue, "saturation": saturation})
+    # Set the color of the specified light bulb
+    service_data = {"entity_id": light_id, "rgb_color": color, "brightness": 255}
+    hass.services.call("light", "turn_on", service_data, False)
+
+# Get the entity ID for the bulb we want to use for the weather light
+entity_id = data.get("entity_id")
+
+if entity_id is not None:
+    while True:
+        update_weather_light(entity_id)
