@@ -150,8 +150,8 @@ def get_test_colors():
 
 def update_weather_light(light_id):
     weather_sensor = hass.states.get("weather.openweathermap_overview")
-    #colors = get_condition_colors(weather_sensor)
-    colors = get_test_colors()
+    colors = get_condition_colors(weather_sensor)
+    #colors = get_test_colors()
 
     # Change the bulb color every 5 seconds
     for color in colors:
