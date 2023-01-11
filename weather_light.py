@@ -1,13 +1,13 @@
 # Color constants
-BLUE = [0, 0, 255]
-AQUA = [0, 188, 255]
-TEAL = [0, 255, 213]
-GREEN = [0, 255, 0]
-LIME = [102, 255, 0]
+BLUE = [0, 0, 25]
+AQUA = [0, 150, 255]
+TEAL = [0, 225, 180]
+GREEN = [0, 25, 0]
+LIME = [165, 255, 0]
 YELLOW = [255, 255, 0]
-ORANGE = [255, 85, 0]
-RED = [255, 0, 0]
-PURPLE = [145, 0, 255]
+ORANGE = [255, 125, 0]
+RED = [25, 0, 0]
+PURPLE = [145, 0, 225]
 MAGENTA = [255, 0, 255]
 
 def get_condition_colors(weather_sensor):
@@ -39,7 +39,9 @@ def get_condition_colors(weather_sensor):
     # Get the temperature and relative humidity, and use them to estimate the dew point
     temperature = weather_sensor.attributes.get("temperature")
     humidity = weather_sensor.attributes.get("humidity")
-    dew_point = temperature - ((100 - humidity) * (9 / 25))
+    dew_point = 0
+    if humidity is not None:
+        dew_point = temperature - ((100 - humidity) * (9 / 25))
     logger.info(dew_point)
     
     # Add the temperature and dew point to their lists
@@ -131,14 +133,31 @@ def get_condition_colors(weather_sensor):
 
     return colors
 
+def get_test_colors():
+    colors = []
+    colors.append(BLUE)
+    colors.append(AQUA)
+    colors.append(TEAL)
+    colors.append(GREEN)
+    colors.append(LIME)
+    colors.append(YELLOW)
+    colors.append(ORANGE)
+    colors.append(RED)
+    colors.append(MAGENTA)
+    colors.append(PURPLE)
+    
+    return colors
+
 def update_weather_light(light_id):
     weather_sensor = hass.states.get("weather.openweathermap_overview")
-    colors = get_condition_colors(weather_sensor)
+    #colors = get_condition_colors(weather_sensor)
+    colors = get_test_colors()
 
     # Change the bulb color every 5 seconds
     for color in colors:
         # Set the bulb color to the current color
         set_bulb_color(light_id, color)
+        logger.info(color)
         # Wait for 5 seconds
         time.sleep(5)
 
