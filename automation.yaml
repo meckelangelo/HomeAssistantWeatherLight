@@ -1,0 +1,28 @@
+# Add the following to automation.yaml file (or create automations manually)
+- id: '1674231985546'
+  alias: Update Weather Colors when OpenWeather changes
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - weather.openweathermap_overview
+  condition: []
+  action:
+  - service: python_script.update_weather_colors
+    data: {}
+  mode: single
+- id: '1674232057152'
+  alias: Update Weather Light Color every 5 seconds
+  description: ''
+  trigger:
+  - platform: time_pattern
+    seconds: /5
+  condition:
+  - condition: numeric_state
+    entity_id: var.weather_colors_count
+    above: 1
+  action:
+  - service: python_script.update_weather_light
+    data:
+      entity_id: light.foyerweatherlight
+  mode: single
