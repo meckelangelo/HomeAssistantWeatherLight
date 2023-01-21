@@ -1,11 +1,3 @@
-weather_light:
-    name: Weather Light
-    description: Display the current weather conditions by alternating the color of a light bulb.
-    fields:
-        entity_id:
-            description: The light that will be controlled.
-            exampled: light.foyerweatherlight
-
 update_weather_colors:
     name: Update Weather Colors
     description: Update the weather_colors variable with the list of colors representing the current and forecasted weather conditions.
