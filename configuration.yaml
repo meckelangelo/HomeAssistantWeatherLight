@@ -1,0 +1,11 @@
+# Add the following variables to configuration.yaml file
+var:
+    weather_colors:
+        friendly_name: 'Weather Colors'
+        initial_value: ''
+    weather_colors_count:
+        friendly_name: 'Current Weather Colors Count'
+        initial_value: 0
+    weather_color_index:
+        friendly_name: 'Current Weather Color Index'
+        initial_value: 0
