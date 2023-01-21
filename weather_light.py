@@ -1,12 +1,12 @@
 # Color constants
-BLUE = [0, 0, 25]
+BLUE = [20, 20, 100]
 AQUA = [0, 150, 255]
 TEAL = [0, 225, 180]
 GREEN = [0, 25, 0]
 LIME = [165, 255, 0]
 YELLOW = [255, 255, 0]
 ORANGE = [255, 125, 0]
-RED = [25, 0, 0]
+RED = [150, 5, 15]
 PURPLE = [145, 0, 225]
 MAGENTA = [255, 0, 255]
 
@@ -52,18 +52,19 @@ def get_condition_colors(weather_sensor):
     wind_speeds.append(weather_sensor.attributes.get("wind_speed"))
     
     # Get the next 8 hours of forecast and get the same information for each hour
-    forecasts = weather_sensor.attributes.get("forecast")[:8]
-    for forecast in forecasts:
-        weather_conditions.append(forecast["condition"])
-        
-        temperature = forecast["temperature"]
-        #humidity = forecast["humidity"]
-        #dew_point = ((temperature - ((100 - humidity) / 5)) * 1.8) + 32
-        
-        temperatures.append(temperature)
-        #dew_points.append(dew_point)
-        
-        wind_speeds.append(forecast["wind_speed"])
+    if weather_sensor.attributes.get("forecast") is not None:
+        forecasts = weather_sensor.attributes.get("forecast")[:8]
+        for forecast in forecasts:
+            weather_conditions.append(forecast["condition"])
+            
+            temperature = forecast["temperature"]
+            #humidity = forecast["humidity"]
+            #dew_point = ((temperature - ((100 - humidity) / 5)) * 1.8) + 32
+            
+            temperatures.append(temperature)
+            #dew_points.append(dew_point)
+            
+            wind_speeds.append(forecast["wind_speed"])
 
     # Loop through each condition
     for condition in weather_conditions:
